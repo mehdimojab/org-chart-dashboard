@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Org Chart — Needs Dashboard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 2rem 1rem
+    }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f5f3;
+      --bg-tertiary: #eeecea;
+      --text-primary: #1a1a1a;
+      --text-secondary: #6b6b68;
+      --border-light: rgba(0, 0, 0, 0.1);
+      --border-med: rgba(0, 0, 0, 0.18);
+      --accent: #185FA5;
+      --accent-light: #E6F1FB;
+      --accent-text: #0C447C;
+      --radius-md: 8px;
+      --radius-lg: 12px
+    }
+
+    @media(prefers-color-scheme:dark) {
+      :root {
+        --bg-primary: #1e1e1c;
+        --bg-secondary: #282826;
+        --bg-tertiary: #313130;
+        --text-primary: #f0efeb;
+        --text-secondary: #9c9b97;
+        --border-light: rgba(255, 255, 255, 0.1);
+        --border-med: rgba(255, 255, 255, 0.18);
+        --accent: #378ADD;
+        --accent-light: #042C53;
+        --accent-text: #85B7EB
+      }
+    }
+
+    .dashboard {
+      max-width: 1100px;
+      margin: 0 auto
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 12px
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-primary)
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 2px
+    }
+
+    .btn {
+      background: transparent;
+      border: 0.5px solid var(--border-med);
+      border-radius: var(--radius-md);
+      padding: 8px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text-primary);
+      transition: background 0.15s;
+      font-family: inherit
+    }
+
+    .btn:hover {
+      background: var(--bg-tertiary)
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent)
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9
+    }
+
+    .btn-danger:hover {
+      background: #FCEBEB;
+      color: #A32D2D
+    }
+
+    .person-card {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      width: 220px;
+      flex-shrink: 0;
+      overflow: hidden
+    }
+
+    .person-card.root-card {
+      border: 1.5px solid var(--accent);
+      width: 240px
+    }
+
+    .card-header {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none
+    }
+
+    .card-header:hover {
+      background: var(--bg-secondary)
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      font-size: 13px;
+      flex-shrink: 0
+    }
+
+    .avatar.blue {
+      background: #E6F1FB;
+      color: #0C447C
+    }
+
+    .avatar.teal {
+      background: #E1F5EE;
+      color: #085041
+    }
+
+    .avatar.coral {
+      background: #FAECE7;
+      color: #712B13
+    }
+
+    .avatar.purple {
+      background: #EEEDFE;
+      color: #3C3489
+    }
+
+    .avatar.amber {
+      background: #FAEEDA;
+      color: #633806
+    }
+
+    .card-info {
+      flex: 1;
+      min-width: 0
+    }
+
+    .card-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .card-role {
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 4px;
+      align-items: center
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1;
+      display: flex;
+      align-items: center
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary)
+    }
+
+    .icon-btn.red:hover {
+      background: #FCEBEB;
+      color: #A32D2D
+    }
+
+    .needs-section {
+      border-top: 0.5px solid var(--border-light);
+      padding: 10px 14px
+    }
+
+    .needs-count {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 8px
+    }
+
+    .need-item {
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      position: relative
+    }
+
+    .need-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+      padding-right: 20px
+    }
+
+    .need-approach {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.5
+    }
+
+    .need-delete {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1;
+      padding: 2px;
+      border-radius: 4px
+    }
+
+    .need-delete:hover {
+      background: #FCEBEB;
+      color: #A32D2D
+    }
+
+    .add-need-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--accent);
+      background: transparent;
+      border: 0.5px dashed #B5D4F4;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 4px;
+      font-family: inherit
+    }
+
+    .add-need-btn:hover {
+      background: var(--accent-light)
+    }
+
+    .connector-line {
+      width: 2px;
+      height: 20px;
+      background: var(--border-light);
+      margin: 0 auto
+    }
+
+    .tree-children {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap
+    }
+
+    .branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center
+    }
+
+    .top-conn {
+      width: 2px;
+      height: 20px;
+      background: var(--border-light)
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100
+    }
+
+    .modal {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      border: 0.5px solid var(--border-light);
+      padding: 1.5rem;
+      width: 360px;
+      max-width: 90vw
+    }
+
+    .modal h3 {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      color: var(--text-primary)
+    }
+
+    .form-group {
+      margin-bottom: 12px
+    }
+
+    .form-group label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: block;
+      margin-bottom: 4px
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 0.5px solid var(--border-med);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: inherit;
+      resize: vertical
+    }
+
+    .form-group textarea {
+      min-height: 70px
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 1rem
+    }
+
+    #tree-root {
+      display: flex;
+      flex-direction: column;
+      align-items: center
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dashboard">
+    <div class="top-bar">
+      <div>
+        <div class="title">Org Chart — Needs Dashboard</div>
+        <div class="subtitle">Manage team members and their needs</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddModal(null)">+ Add member</button>
+    </div>
+    <div id="tree-root"></div>
+  </div>
+
+  <div id="modal-overlay" class="overlay" style="display:none" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h3 id="modal-title">Add member</h3>
+      <div class="form-group">
+        <label>Full name</label>
+        <input id="f-name" type="text" placeholder="e.g. Ahmed Bennani">
+      </div>
+      <div class="form-group">
+        <label>Role / Title</label>
+        <input id="f-role" type="text" placeholder="e.g. Sales Manager">
+      </div>
+      <div id="parent-group" class="form-group">
+        <label>Reports to</label>
+        <select id="f-parent"></select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitPerson()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="edit-modal-overlay" class="overlay" style="display:none" onclick="closeEditModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h3>Edit member</h3>
+      <div class="form-group"><label>Full name</label><input id="e-name" type="text"></div>
+      <div class="form-group"><label>Role / Title</label><input id="e-role" type="text"></div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitEdit()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="need-modal-overlay" class="overlay" style="display:none" onclick="closeNeedModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h3>Add need</h3>
+      <div class="form-group">
+        <label>Need / Challenge</label>
+        <input id="n-title" type="text" placeholder="e.g. CRM training required">
+      </div>
+      <div class="form-group">
+        <label>Approach to address it</label>
+        <textarea id="n-approach" placeholder="e.g. Schedule bi-weekly workshops with the IT team"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeNeedModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitNeed()">Add need</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const colors = ['blue', 'teal', 'coral', 'purple', 'amber'];
+    let data = {
+      id: 'root', name: 'Business Owner', role: 'CEO & Founder', color: 'blue', expanded: true, needs: [], children: [
+        { id: 'p1', name: 'Karim Mansouri', role: 'Sales Director', color: 'teal', expanded: false, needs: [{ id: 'n1', title: 'Lead pipeline tracking', approach: 'Implement CRM dashboard with weekly review cadence' }], children: [] },
+        {
+          id: 'p2', name: 'Nadia El Fassi', role: 'Operations Manager', color: 'coral', expanded: false, needs: [], children: [
+            { id: 'p3', name: 'Youssef Alami', role: 'Logistics Coordinator', color: 'purple', expanded: false, needs: [{ id: 'n2', title: 'Delivery delays', approach: 'Renegotiate SLAs with 3PL partners and set alerts' }], children: [] }
+          ]
+        }
+      ]
+    };
+    let nextId = 10, addingUnder = null, addingNeedFor = null, editingId = null;
+
+    function initials(name) { return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() }
+
+    function buildCard(node, isRoot) {
+      const card = document.createElement('div');
+      card.className = 'person-card' + (isRoot ? ' root-card' : '');
+      card.id = 'card-' + node.id;
+      const header = document.createElement('div');
+      header.className = 'card-header';
+      header.innerHTML = `
+    <div class="avatar ${node.color}">${initials(node.name)}</div>
+    <div class="card-info">
+      <div class="card-name">${node.name}</div>
+      <div class="card-role">${node.role}</div>
+    </div>
+    <div class="card-actions">
+      <button class="icon-btn" title="Edit" onclick="openEditModal('${node.id}');event.stopPropagation()">✎</button>
+      <button class="icon-btn" title="Add child" onclick="openAddModal('${node.id}');event.stopPropagation()">+</button>
+      ${!isRoot ? `<button class="icon-btn red" title="Remove" onclick="removePerson('${node.id}');event.stopPropagation()">✕</button>` : ''}
+    </div>`;
+      header.querySelector('.card-info').addEventListener('click', () => toggleExpand(node.id));
+      card.appendChild(header);
+      const needs = document.createElement('div');
+      needs.className = 'needs-section';
+      needs.id = 'needs-' + node.id;
+      needs.innerHTML = `<div class="needs-count">${node.needs.length} need${node.needs.length !== 1 ? 's' : ''}</div>`;
+      node.needs.forEach(n => {
+        const ni = document.createElement('div');
+        ni.className = 'need-item';
+        ni.innerHTML = `<div class="need-title">${n.title}</div><div class="need-approach">${n.approach}</div><button class="need-delete" onclick="removeNeed('${node.id}','${n.id}')">✕</button>`;
+        needs.appendChild(ni);
+      });
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-need-btn';
+      addBtn.innerHTML = '+ Add need';
+      addBtn.onclick = () => openNeedModal(node.id);
+      needs.appendChild(addBtn);
+      card.appendChild(needs);
+      if (!node.expanded) needs.style.display = 'none';
+      return card;
+    }
+
+    function renderTree() {
+      const root = document.getElementById('tree-root');
+      root.innerHTML = '';
+      renderNode(data, root, true);
+    }
+
+    function renderNode(node, container, isRoot) {
+      const card = buildCard(node, isRoot);
+      container.appendChild(card);
+      if (node.children && node.children.length > 0) {
+        const conn = document.createElement('div'); conn.className = 'connector-line'; container.appendChild(conn);
+        const childRow = document.createElement('div'); childRow.className = 'tree-children'; container.appendChild(childRow);
+        node.children.forEach(child => {
+          const branch = document.createElement('div'); branch.className = 'branch';
+          const tc = document.createElement('div'); tc.className = 'top-conn'; branch.appendChild(tc);
+          renderNode(child, branch, false);
+          childRow.appendChild(branch);
+        });
+      }
+    }
+
+    function toggleExpand(id) {
+      const node = findNode(id); if (!node) return;
+      node.expanded = !node.expanded;
+      const ns = document.getElementById('needs-' + id);
+      if (ns) ns.style.display = node.expanded ? '' : 'none';
+    }
+
+    function findNode(id, node = data) {
+      if (node.id === id) return node;
+      for (const c of (node.children || [])) { const r = findNode(id, c); if (r) return r; }
+      return null;
+    }
+
+    function removeFromParent(id, node = data) {
+      node.children = (node.children || []).filter(c => c.id !== id);
+      node.children.forEach(c => removeFromParent(id, c));
+    }
+
+    function removePerson(id) { removeFromParent(id); renderTree(); }
+
+    function removeNeed(personId, needId) {
+      const node = findNode(personId); if (!node) return;
+      node.needs = node.needs.filter(n => n.id !== needId);
+      renderTree();
+    }
+
+    function openAddModal(parentId) {
+      addingUnder = parentId;
+      const pg = document.getElementById('parent-group');
+      const sel = document.getElementById('f-parent');
+      sel.innerHTML = '';
+      if (parentId === null) {
+        pg.style.display = '';
+        collectAll(data).forEach(n => {
+          const o = document.createElement('option'); o.value = n.id; o.textContent = n.name + ' (' + n.role + ')'; sel.appendChild(o);
+        });
+      } else {
+        pg.style.display = 'none';
+      }
+      document.getElementById('modal-title').textContent = parentId ? 'Add member under ' + findNode(parentId).name : 'Add member';
+      document.getElementById('f-name').value = '';
+      document.getElementById('f-role').value = '';
+      document.getElementById('modal-overlay').style.display = 'flex';
+      setTimeout(() => document.getElementById('f-name').focus(), 50);
+    }
+
+    function collectAll(node, arr = []) { arr.push(node); (node.children || []).forEach(c => collectAll(c, arr)); return arr; }
+    function closeModal(e) { if (!e || e.target === document.getElementById('modal-overlay')) document.getElementById('modal-overlay').style.display = 'none'; }
+
+    function submitPerson() {
+      const name = document.getElementById('f-name').value.trim();
+      const role = document.getElementById('f-role').value.trim();
+      if (!name || !role) { alert('Please fill in both fields.'); return; }
+      const pid = addingUnder === null ? document.getElementById('f-parent').value : addingUnder;
+      const parent = findNode(pid) || data;
+      const ci = nextId++;
+      parent.children.push({ id: 'p' + ci, name, role, color: colors[ci % colors.length], expanded: false, needs: [], children: [] });
+      document.getElementById('modal-overlay').style.display = 'none';
+      renderTree();
+    }
+
+    function openEditModal(id) {
+      editingId = id;
+      const node = findNode(id); if (!node) return;
+      document.getElementById('e-name').value = node.name;
+      document.getElementById('e-role').value = node.role;
+      document.getElementById('edit-modal-overlay').style.display = 'flex';
+      setTimeout(() => document.getElementById('e-name').focus(), 50);
+    }
+    function closeEditModal(e) { if (!e || e.target === document.getElementById('edit-modal-overlay')) document.getElementById('edit-modal-overlay').style.display = 'none'; }
+    function submitEdit() {
+      const name = document.getElementById('e-name').value.trim(), role = document.getElementById('e-role').value.trim();
+      if (!name || !role) { alert('Please fill in both fields.'); return; }
+      const node = findNode(editingId); if (!node) return;
+      node.name = name; node.role = role;
+      document.getElementById('edit-modal-overlay').style.display = 'none'; renderTree();
+    }
+
+    function openNeedModal(personId) {
+      addingNeedFor = personId;
+      document.getElementById('n-title').value = '';
+      document.getElementById('n-approach').value = '';
+      document.getElementById('need-modal-overlay').style.display = 'flex';
+      setTimeout(() => document.getElementById('n-title').focus(), 50);
+    }
+
+    function closeNeedModal(e) { if (!e || e.target === document.getElementById('need-modal-overlay')) document.getElementById('need-modal-overlay').style.display = 'none'; }
+
+    function submitNeed() {
+      const title = document.getElementById('n-title').value.trim();
+      const approach = document.getElementById('n-approach').value.trim();
+      if (!title || !approach) { alert('Please fill in both fields.'); return; }
+      const node = findNode(addingNeedFor); if (!node) return;
+      node.needs.push({ id: 'n' + nextId++, title, approach });
+      document.getElementById('need-modal-overlay').style.display = 'none';
+      renderTree();
+    }
+
+    renderTree();
+  </script>
+</body>
+
+</html>
